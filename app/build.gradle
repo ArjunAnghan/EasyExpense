@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.example.easyexpense"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -20,6 +20,10 @@ android {
 }
 
 dependencies {
+    implementation 'com.github.f0ris.sweetalert:library:1.5.6'
+    implementation 'com.google.android.gms:play-services-vision:11.8.0'
+    implementation 'com.github.yalantis:ucrop:2.2.2'
+    implementation 'com.github.takusemba:cropme:2.0.5'
     implementation 'com.google.android.material:material:1.2.0-alpha04'
     implementation 'com.android.volley:volley:1.1.0'
     implementation fileTree(dir: 'libs', include: ['*.jar'])

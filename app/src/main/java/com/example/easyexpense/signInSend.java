@@ -2,8 +2,10 @@ package com.example.easyexpense;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -12,26 +14,24 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
-public class SignUpSend extends AsyncTask<String, Void, String> {
+public class signInSend extends AsyncTask<String, Void, String> {
 
     Context ctx;
     private SweetAlertDialog pDialog;
 
-    // ----------------------------------------------------------------------------------------------------------------------//
-    // This is the constructer
-    SignUpSend(Context ctx) {
+    // This is the constructor
+    signInSend(Context ctx) {
+
         this.ctx = ctx;
         pDialog = new SweetAlertDialog(ctx, SweetAlertDialog.PROGRESS_TYPE);
     }
 
     // ----------------------------------------------------------------------------------------------------------------------//
-    // This function will be called before the execution
+    // This will run before data will be sent
     @Override
     protected void onPreExecute() {
         pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
@@ -41,48 +41,43 @@ public class SignUpSend extends AsyncTask<String, Void, String> {
     }
 
     // ----------------------------------------------------------------------------------------------------------------------//
-    // This is the main function
+    // This function will send data and receive a response
     @Override
     protected String doInBackground(final String... strings) {
 
         RequestQueue requestQueue = Volley.newRequestQueue(ctx);
-        final String name = strings[0];
-        final String email = strings[1];
-        final String password = strings[2];
-        final String phone_number = strings[3];
-        final String unique_id = strings[4];
-        final String profilePhoto = strings[5];
+        final String email = strings[0];
+        final String password = strings[1];
 
-        StringRequest request = new StringRequest(Request.Method.POST, AttributeData.getUrl()+"/user_insert.php", new Response.Listener<String>() {
+        StringRequest request = new StringRequest(Request.Method.POST, AttributeData.getUrl()+"/signin.php", new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 pDialog.cancel();
 
                 String[] responses = response.split(":");
 
-                if(responses[0].equals("insert"))
+                if(responses[0].equals("exist"))
                 {
                     if(responses[1].equals("1"))
                     {
-                        new SweetAlertDialog(ctx,SweetAlertDialog.SUCCESS_TYPE)
-                                .setTitleText("Signup Successfully")
-                                .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
-                                    @Override
-                                    public void onClick(SweetAlertDialog sDialog) {
-                                        Intent signinIntent = new Intent(ctx, MainActivity.class);
-                                        ctx.startActivity(signinIntent);
-                                    }
-                                })
-                                .show();
+
+                        // It will store used login data
+                        SharedPreferences sharedPreferences = ctx.getApplicationContext().getSharedPreferences("EasyExpense",0);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("unique_id",responses[2]);
+                        editor.apply();
+
+                        Intent intent = new Intent(ctx,afterLogin.class);
+                        ctx.startActivity(intent);
                     }
                     else
                     {
-                        DialogBox.errorMessage(ctx,"Please enter valid data!");
+                        DialogBox.errorMessage(ctx,"Wrong username or password!");
                     }
                 }
                 else
                 {
-                    DialogBox.errorMessage(ctx, "Bad Parameters!");
+                    DialogBox.errorMessage(ctx,"Bad Parameters");
                 }
             }
         }, new Response.ErrorListener() {
@@ -95,12 +90,8 @@ public class SignUpSend extends AsyncTask<String, Void, String> {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> parameters = new HashMap<String, String>();
-                parameters.put("name", name);
                 parameters.put("email", email);
                 parameters.put("password", password);
-                parameters.put("phone_number", phone_number);
-                parameters.put("unique_id", unique_id);
-                parameters.put("profilePhoto",profilePhoto);
 
                 return parameters;
             }
@@ -112,15 +103,16 @@ public class SignUpSend extends AsyncTask<String, Void, String> {
 
 
     // ----------------------------------------------------------------------------------------------------------------------//
-    // This function will be called if there will be some changes during the process
+    // This  function will be called if something occured during process
     @Override
     protected void onProgressUpdate(Void... values) {
         super.onProgressUpdate(values);
     }
 
     // ----------------------------------------------------------------------------------------------------------------------//
-    // This function will be called after process finished
+    // This function will be executed after process will be finished
     @Override
     protected void onPostExecute(String result) {
+
     }
 }
